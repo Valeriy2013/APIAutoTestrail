@@ -78,35 +78,97 @@ class OMDBTests extends BaseTest {
                     .get("Search.findAll { item -> item.Title == 'The STEM Journals' || item.Title == 'Activision: STEM - in the Videogame Industry'}");
             allResults.addAll(searchResults);
         }
-        assertThat(allResults.size(), greaterThan(0));
+        assertThat(allResults.size(), equalTo(2));
     }
 
     @Test
     @DisplayName("Get movie details by ID and check that the movie was released on 23 Nov 2010")
     void searchByIdAndCheckReleaseDate() {
         testCaseId = 6;
+        String movieId = "tt1810525";
+        logger.info("Getting movie by ID");
+        final String released = request
+                .given()
+                .pathParam("id", movieId)
 
+                .when()
+                .get("/?i={id}")
+
+                .then()
+                .statusCode(200)
+
+                .extract()
+                .jsonPath()
+                .get("Released");
+
+        assertThat(released, equalTo("23 Nov 2010"));
     }
 
     @Test
     @DisplayName("Get movie details by ID and check that the movie was directed by Mike Feurstein")
     void searchByIdAndDirectedBy() {
         testCaseId = 9;
-        
+        String movieId = "tt1810525";
+        logger.info("Getting movie by ID");
+        final String released = request
+                .given()
+                .pathParam("id", movieId)
+
+                .when()
+                .get("/?i={id}")
+
+                .then()
+                .statusCode(200)
+
+                .extract()
+                .jsonPath()
+                .get("Director");
+
+        assertThat(released, equalTo("Mike Feurstein"));
     }
 
     @Test
     @DisplayName("Get item by title \"The STEM Journals\" and check that the plot contains the string \"Science, Technology, Engineering and Math\" ")
     void searchByTitleAndCheckPlot() {
         testCaseId = 7;
+        String movieTitle = "The STEM Journals";
+        logger.info("Getting movie by Title");
+        final String plot = request
+                .given()
+                .pathParam("title", movieTitle)
 
+                .when()
+                .get("/?t={title}")
+
+                .then()
+                .statusCode(200)
+
+                .extract()
+                .jsonPath()
+                .get("Plot");
+        assertThat(plot, endsWith("Science, Technology, Engineering and Math."));
     }
 
     @Test
     @DisplayName("Get item by title \"The STEM Journals\" and check that the item has a runtime of 22 minutes")
     void searchByTitleAndCheckRuntime() {
         testCaseId = 8;
+        String movieTitle = "The STEM Journals";
+        logger.info("Getting movie by Title");
+        final String runtime = request
+                .given()
+                .pathParam("title", movieTitle)
 
+                .when()
+                .get("/?t={title}")
+
+                .then()
+                .statusCode(200)
+
+                .extract()
+                .jsonPath()
+                .get("Runtime");
+        assertThat(runtime, equalTo("22 min"));
     }
 
 }
