@@ -1,31 +1,112 @@
-import io.restassured.path.json.JsonPath;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
-public class OMDBTests extends BaseTest {
+
+class OMDBTests extends BaseTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(OMDBTests.class);
 
     @Test
-    @DisplayName("Search for all items that match the search string \"stem\" and check that at least 30 items are shown  ")
-    void searchByTextAndCheckThatMoreThan30ItemsAreShown() throws MalformedURLException {
+    @DisplayName("Search for all items that match the search string \"stem\" and check that exist at least 30 items ")
+    void searchByTextAndCheckThatExistMoreThan30Items() {
         testCaseId = 4;
-        final HashMap items = new JsonPath(new URL("http://www.omdbapi.com/?s=stem&apikey=d60ddbe8")).get();
-        assertThat(Integer.parseInt(items.get("totalResults").toString()), greaterThan(30));
+
+        logger.info("Getting total items count from 'totalResults' field");
+        final String foundResults = request
+                .given()
+                .pathParam("search_criteria", "stem")
+
+                .when()
+                .get("/?s={search_criteria}")
+
+                .then()
+                .statusCode(200)
+
+                .extract()
+                .jsonPath()
+                .get("totalResults");
+
+        assertThat(Integer.parseInt(foundResults), greaterThan(30));
     }
 
     @Test
     @DisplayName("Search for all items that match the search string \"stem\" and check that the result contains items titled \"The STEM Journals\" and \"Activision: STEM - in the Videogame Industry\"  ")
-    void searchByTextAndCheckThatResultContainsItems() throws MalformedURLException {
+    void searchByTextAndCheckThatResultContainsItemsWithTitles() {
         testCaseId = 5;
-        final List<Map<String, ?>> items = new JsonPath(new URL("http://www.omdbapi.com/?s=stem&apikey=d60ddbe8&page=100")).get("search.findAll { item -> item.title = 'The STEM Journals' }");
-        assertThat(items.size(), equalTo(2));
+
+        logger.info("Getting total items count from 'totalResults' field");
+        final String foundResults = request
+                .given()
+                .pathParam("search_criteria", "stem")
+
+                .when()
+                .get("/?s={search_criteria}")
+
+                .then()
+                .statusCode(200)
+
+                .extract()
+                .jsonPath()
+                .get("totalResults");
+
+
+        logger.info("Since response contains only 10 items per page, getting all the results based on 'totalResults' field");
+        ArrayList<HashMap<String, ?>> allResults = new ArrayList<>();
+        for (int i = 1; i <= Integer.parseInt(foundResults) / 10 + 1; i++) {
+            initRequest();
+            ArrayList<HashMap<String, ?>> searchResults = request
+                    .given()
+                    .pathParam("search_criteria", "stem")
+                    .pathParam("page", String.valueOf(i))
+
+                    .when()
+                    .get("/?s={search_criteria}&page={page}")
+
+                    .then()
+                    .statusCode(200)
+
+                    .extract()
+                    .jsonPath()
+                    .get("Search.findAll { item -> item.Title == 'The STEM Journals' || item.Title == 'Activision: STEM - in the Videogame Industry'}");
+            allResults.addAll(searchResults);
+        }
+        assertThat(allResults.size(), greaterThan(0));
     }
+
+    @Test
+    @DisplayName("Get movie details by ID and check that the movie was released on 23 Nov 2010")
+    void searchByIdAndCheckReleaseDate() {
+        testCaseId = 6;
+
+    }
+
+    @Test
+    @DisplayName("Get movie details by ID and check that the movie was directed by Mike Feurstein")
+    void searchByIdAndDirectedBy() {
+        testCaseId = 9;
+        
+    }
+
+    @Test
+    @DisplayName("Get item by title \"The STEM Journals\" and check that the plot contains the string \"Science, Technology, Engineering and Math\" ")
+    void searchByTitleAndCheckPlot() {
+        testCaseId = 7;
+
+    }
+
+    @Test
+    @DisplayName("Get item by title \"The STEM Journals\" and check that the item has a runtime of 22 minutes")
+    void searchByTitleAndCheckRuntime() {
+        testCaseId = 8;
+
+    }
+
 }

@@ -347,6 +347,16 @@ public class TestrailApiClient {
         return sb.toString();
     }
 
+    /**
+     * Add testcase results to existing test run
+     * @param client
+     * @param testCaseId
+     * @param testRunId
+     * @param testStatus
+     * @param error
+     * @throws IOException
+     * @throws APIException
+     */
     public void addResultForTestCase(TestrailApiClient client, int testCaseId, int testRunId, int testStatus, String error) throws IOException, APIException {
         logger.info("Adding run results for test case");
         Map<String, Serializable> data = new HashMap<>();
@@ -355,6 +365,14 @@ public class TestrailApiClient {
         client.sendPost("add_result_for_case/" + testRunId + "/" + testCaseId + "", data);
     }
 
+    /**
+     * Create test run in TestRail
+     * @param client
+     * @param testProjectId
+     * @return
+     * @throws IOException
+     * @throws APIException
+     */
     public int addRun(TestrailApiClient client, int testProjectId) throws IOException, APIException {
         logger.info("Creating test run");
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
@@ -365,6 +383,13 @@ public class TestrailApiClient {
         return Integer.parseInt(obj.get("id").toString());
     }
 
+    /**
+     * Return testcase title by testcase ID
+     * @param client
+     * @param testCaseId
+     * @throws IOException
+     * @throws APIException
+     */
     public String getCaseName(TestrailApiClient client, int testCaseId) throws IOException, APIException {
         logger.info("Getting test case name");
         JSONObject obj = (JSONObject) client.sendGet("get_case/" + testCaseId);

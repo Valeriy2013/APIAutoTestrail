@@ -1,1 +1,3 @@
 # APIAutoTestrail
+
+mvn clean test

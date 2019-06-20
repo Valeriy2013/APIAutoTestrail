@@ -2,6 +2,10 @@ import api.Constants;
 import api.TestStatus;
 import api.testrail.APIException;
 import api.testrail.TestrailApiClient;
+import io.restassured.RestAssured;
+import io.restassured.builder.ResponseSpecBuilder;
+import io.restassured.specification.RequestSpecification;
+import io.restassured.specification.ResponseSpecification;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -11,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 
 
 public class BaseTest {
@@ -23,11 +26,13 @@ public class BaseTest {
     private static int testProjectId = Constants.PROJECT_ID;
     private static int testRunId;
     protected static int testCaseId;
+    protected static RequestSpecification request;
 
 
     @BeforeAll
     static void beforeAll() throws Exception {
         logger.info("Before all test methods");
+        RestAssured.baseURI = Constants.OMDB_URL;
         client = TestrailApiClient.testrailApiClient();
         testRunId = client.addRun(client, testProjectId);
     }
@@ -35,6 +40,7 @@ public class BaseTest {
     @BeforeEach
     void beforeEach() {
         logger.info("Before each test method");
+        request = initRequest();
     }
 
     @AfterEach
@@ -46,6 +52,14 @@ public class BaseTest {
     @AfterAll
     static void afterAll() {
         logger.info("After all test methods");
+    }
+
+    public static RequestSpecification initRequest(){
+
+        request = RestAssured.given()
+                .contentType("application/json")
+                .queryParam("apikey", Constants.OMDB_API_KEY);
+        return request;
     }
 
     public class StatusExtension implements AfterTestExecutionCallback {
