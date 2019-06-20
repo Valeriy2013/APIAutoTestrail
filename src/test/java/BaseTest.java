@@ -1,5 +1,6 @@
 import api.Constants;
 import api.TestStatus;
+import api.omdb.OMDbApiClient;
 import api.testrail.APIException;
 import api.testrail.TestrailApiClient;
 import io.restassured.RestAssured;
@@ -14,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 
 
 public class BaseTest {
@@ -27,12 +27,12 @@ public class BaseTest {
     private static int testRunId;
     protected static int testCaseId;
     protected static RequestSpecification request;
+    protected static OMDbApiClient omDbApiClient = new OMDbApiClient();
 
 
     @BeforeAll
     static void beforeAll() throws Exception {
         logger.info("Before all test methods");
-        RestAssured.baseURI = Constants.OMDB_URL;
         client = TestrailApiClient.testrailApiClient();
         testRunId = client.addRun(client, testProjectId);
     }
@@ -40,11 +40,10 @@ public class BaseTest {
     @BeforeEach
     void beforeEach() {
         logger.info("Before each test method");
-        request = initRequest();
     }
 
     @AfterEach
-    void afterEach() throws MalformedURLException, IOException, APIException {
+    void afterEach() throws IOException, APIException {
         logger.info("After each test method");
         client.addResultForTestCase(client, testCaseId, testRunId, testStatus.getValue(), "");
     }
@@ -52,14 +51,6 @@ public class BaseTest {
     @AfterAll
     static void afterAll() {
         logger.info("After all test methods");
-    }
-
-    public static RequestSpecification initRequest(){
-
-        request = RestAssured.given()
-                .contentType("application/json")
-                .queryParam("apikey", Constants.OMDB_API_KEY);
-        return request;
     }
 
     public class StatusExtension implements AfterTestExecutionCallback {
